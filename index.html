@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+	<body>
+		<canvas id="snakeScreen" width="700" height="700" style="border:1px solid #000000;">
+		</canvas>
+		<script>
+			function foobar() {
+				console.log("FooFelixSanBar");
+				var c = document.getElementById("snakeScreen");
+				if (c.getContext) {
+					var ctx = c.getContext("2d");
+					ctx.moveTo(0, 0);
+					ctx.lineTo(200, 100);
+					ctx.stroke();
+				} else {
+					console.log("Unsupported browser");
+				}
+			}
+			
+			async function drawCircleBadly() {
+				//check dimensions over
+				var c = document.getElementById("snakeScreen");
+				var centerX = 250;
+				var centerY = 250;
+				var leftX = 50;
+				var rightX = 450;
+				var radius = 200;
+				var hourHand = 3;
+				var minuteHand = 40
+				
+				var numbersList = [];
+				var clockValues = [];
+				
+				var step = 1;
+				var y = 0;
+				var x = 0;
+				
+				var space = 0;
+				
+				//console.log("In function");
+				var testValues = [];
+				var testValues2 = [];
+				var topLeftValues = [];
+				var topRightValues = [];
+				for (var x = leftX; x <= rightX; x += step) {
+					y = (2 * centerY + Math.sqrt((2 * centerY) ** 2 - 4 * (centerY ** 2 - radius ** 2 + (x - centerX) ** 2))) / 2;
+					var o = new Object();
+					o.x = x;
+					o.y = Math.round(y);
+					testValues.push(o);
+				}
+				testValues2 = testValues.slice(0);
+				testValues2 = testValues2.map(coordinate => ({x: coordinate.x, y: centerY - (parseInt(coordinate.y) - centerY)}));
+				testValues.reverse();
+				var x = (rightX - leftX) / 2;
+				topRightValues = testValues2.slice(x);
+				console.log("top values len " + topRightValues.length);
+				topLeftValues = testValues2.slice(0, x + 1);
+				
+				topRightValues = topRightValues.concat(testValues);
+				topRightValues = topRightValues.concat(topLeftValues);
+				
+				space = parseInt(topRightValues.length / 60 + 1);
+				//for (var i = 0; i < topRightValues.length; i += space) {
+				//	numbersList.push({x: topRightValues[i].x, y: topRightValues[i].y});
+				//}
+				console.log("Before numbersList");
+				numbersList = getHours(centerX, centerY, radius);
+				console.log("Before clockValues");
+				clockValues = getMinutes(centerX, centerY, radius);
+				console.log("After clockValues");
+				if (c.getContext) {
+					var ctx = c.getContext("2d");
+					//ctx.moveTo(topRightValues[0].x, topRightValues[0].y);
+					//for (var i = 1; i < topRightValues.length; i++) {
+					//	ctx.lineTo(topRightValues[i].x, topRightValues[i].y);
+					//	ctx.stroke();
+					//	//await new Promise(r => setTimeout(r, 10));
+					//}
+					ctx.font = "48px serif";
+					
+					//await new Promise(r => setTimeout(r, 60000));
+					while (1) {
+					//console.log("Doing sumthing");
+						for (var k = 0; k < clockValues.length; k++) {
+						
+							numbersList.forEach(n => {
+								ctx.fillText(n.value, n.x, n.y);
+								//console.log(n.value + "  " + n.x + "  " + n.y);
+								//await new Promise(r => setTimeout(r, 100));
+								console.log("In numbers list");
+							});
+							ctx.moveTo(topRightValues[0].x, topRightValues[0].y);
+							//await new Promise(r => setTimeout(r, 100));
+							for (var j = 1; j < topRightValues.length; j++) {
+								ctx.lineTo(topRightValues[j].x, topRightValues[j].y);
+								ctx.stroke();
+								//await new Promise(r => setTimeout(r, 100));
+							}
+							console.log("Stroking");
+							ctx.strokeStyle = "black";
+							ctx.lineWidth = 5;
+							ctx.moveTo(centerX, centerY);
+							ctx.lineTo(numbersList[hourHand].x, numbersList[hourHand].y);
+							ctx.stroke();
+							
+							ctx.moveTo(centerX, centerY);
+							ctx.lineTo(clockValues[minuteHand].x, clockValues[minuteHand].y);
+							ctx.stroke();
+							ctx.lineWidth = 1;
+							
+							ctx.moveTo(centerX, centerY);
+							ctx.lineTo(clockValues[k].x, clockValues[k].y);
+							ctx.stroke();
+							await new Promise(r => setTimeout(r, 10));
+							ctx.clearRect(0, 0, c.width, c.height);
+							ctx.beginPath();
+						}
+						minuteHand++;
+						if (minuteHand >= clockValues.length) {
+							hourHand++;
+							minuteHand = 0;
+						}
+						if (hourHand >= numbersList.length)
+							hourHand = 0;
+					}
+					
+				} else {
+					console.log("Unsupported browser");
+				}
+			}
+			
+			function getMinutes(centerX, centerY, radius) {
+				var listOfHours = [];
+				var step = 360 / 60;
+				var x, y;
+				for (var i = 0; i < 360; i += step) {
+				x = radius * Math.sin(-(i - 180) * Math.PI / 180) + centerX;
+				y = radius * Math.cos(-(i - 180) * Math.PI / 180) + centerY;
+					listOfHours.push({x: x, y: y});
+				}
+				return listOfHours;
+			}
+			
+			function getHours(centerX, centerY, radius) {
+				radius -= 25;
+				var listOfHours = [];
+				var step = 360 / 12;
+				var numbers = ["12", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"];
+				var j = 0;
+				var x, y;
+				for (var i = 0; i < 360; i += step) {
+				x = radius * Math.sin(-(i - 180) * Math.PI / 180) + centerX - 15;
+				y = radius * Math.cos(-(i - 180) * Math.PI / 180) + centerY + 15;
+					listOfHours.push({x: x, y: y, value: numbers[j]});
+					j++;
+				}
+				return listOfHours;
+			}
+			
+			function drawNumbers(context) {
+				//x = r(cos(degrees‎°)), y = r(sin(degrees‎°))
+				for (var i = 0; i <= 90; i++) {
+					
+				}
+			}
+			
+			function listenKeyPresses() {
+				document.addEventListener("keydown", (event) => {
+					console.log("Key was pressed " + event.key);
+				}, false);
+			}
+			listenKeyPresses();
+			drawCircleBadly();
+			//foobar();
+		</script>
+	</body>
+</html>
